@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>koa2-jwt-example</title>
+</head>
+<body>
+	<form>
+		username : <input type="text" id="username" name="username">
+		password : <input type="text" id="password" name="possword">
+		<button id="login">login</button>
+	</form>
+
+	<button id="getUser">Get User</button>
+	<div id="result"></div>
+
+	<script src="axios.min.js"></script>
+	<script>
+
+		const setAuthorizationToken = token => {
+			if (token) {
+				axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+			} else {
+				delete axios.defaults.headers.common['Authorization'];
+			}
+		}
+
+		if (localStorage.jwtToken) {
+			setAuthorizationToken(localStorage.jwtToken)
+		}
+
+		document.getElementById('login').addEventListener('click', (e) => {
+			e.preventDefault()
+			
+			const username = document.getElementById('username').value
+			const password = document.getElementById('password').value
+
+			axios.post('http://localhost:4000/login', {
+				username,
+				password
+			}).then(res => {
+				const { token, message } = res.data
+				// save token
+				localStorage.setItem('jwtToken', token)
+				alert('You Logged in！')
+				location.reload()
+			}).catch(err => console.log(err))
+			
+		})
+
+		const result = document.getElementById('result')
+		const getUser = document.getElementById('getUser')
+		getUser.addEventListener('click', () => {
+			axios.get('http://localhost:4000/users')
+				.then(res => {
+					result.innerHTML = ''
+					res.data.users.forEach(user => {
+						const p = document.createElement('p')
+						p.innerText = user.name
+						result.append(p)
+					})
+				})
+				.catch(err => alert('Authentication failed...'))
+		})
+	</script>
+</body>
+</html>
